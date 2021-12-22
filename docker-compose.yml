@@ -17,7 +17,7 @@ services:
     image: mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD:
       MYSQL_DATABASE: pengarsipan
     ports:
       - "3306:3306"
