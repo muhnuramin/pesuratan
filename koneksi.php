@@ -1,5 +1,5 @@
 <?php
-$server = "localhost";
+$server = "172.20.0.2";
 $user = "root";
 $password = "";
 $nama_database = "pengarsipan";//nama database

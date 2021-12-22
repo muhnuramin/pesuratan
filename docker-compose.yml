@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  php-apache-environment:
+    image: 085300/uas
+    container_name: php-apache
+    depends_on:
+      - db
+    volumes:
+      - ./php/src:/var/www/html/
+    ports:
+      - 8000:80
+    networks:
+      - backend
+
+  db:
+    container_name: db
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 
+      MYSQL_DATABASE: pengarsipan
+    ports:
+      - "3306:3306"
+    volumes:
+      - db:/var/lib/mysql
+      - ./pengarsipan.sql:/docker-entrypoint-initdb.d/pengarsipan.sql
+    networks:
+      - backend
+
+volumes:
+  db:
+
+networks:
+  backend:
+    name: backend-network
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24
