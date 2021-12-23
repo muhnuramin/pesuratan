@@ -5,8 +5,8 @@ services:
     container_name: php-apache
     depends_on:
       - db
-    volumes:
-      - ./php/src:/var/www/html
+    # volumes:
+    #   - ./php/src:/var/www/html
     ports:
       - 8000:80
     networks:
@@ -17,13 +17,14 @@ services:
     image: mysql
     restart: always
     environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD:
+      MYSQL_HOST: 172.20.0.0
+      MYSQL_PORT: 3306
       MYSQL_DATABASE: pengarsipan
     ports:
-      - "3306:3306"
-    volumes:
-      - db:/var/lib/mysql
-      - ./pengarsipan.sql:/docker-entrypoint-initdb.d/pengarsipan.sql
+      - 3306:3306
+    # volumes:
+    #   - db:/var/lib/mysql
+    #   - ./pengarsipan.sql:/docker-entrypoint-initdb.d/pengarsipan.sql
     networks:
       - backend
 
