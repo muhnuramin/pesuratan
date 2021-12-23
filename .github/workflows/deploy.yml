@@ -1,0 +1,60 @@
+name: Hosting Static Website
+
+on:
+  push:
+    branches:
+      - '*'
+jobs:
+  build:
+    name: Build Job
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Start build job'
+        run: |
+          echo "Starting the build job"
+
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+
+      - name: 'Setup nodejs'
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - run: yarn install
+      - run: yarn build
+
+      - name: 'Write config'
+        run: |
+          mkdir ~/.oci
+          echo "[DEFAULT]" >> ~/.oci/config
+          echo "user=${{secrets.OCI_USER_OCID}}" >> ~/.oci/config
+          echo "fingerprint=${{secrets.OCI_FINGERPRINT}}" >> ~/.oci/config
+          echo "region=${{secrets.OCI_REGION}}" >> ~/.oci/config
+          echo "tenancy=${{secrets.OCI_TENANCY_OCID}}" >> ~/.oci/config
+          echo "key_file=~/.oci/oci_api_key.pem" >> ~/.oci/config
+          echo "${{secrets.OCI_KEY_FILE}}" >> ~/.oci/oci_api_key.pem
+          echo "${{secrets.OCI_KEY_PUBLIC}}" >> ~/.oci/oci_api_key_public.pem
+
+      - name: 'Install OCI CLI'
+        run: |
+          curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
+          chmod +x install.sh
+          ./install.sh --accept-all-defaults
+          echo "/home/runner/bin" >> $GITHUB_PATH
+          exec -l $SHELL
+
+      - name: 'Fix Config File Permissions'
+        run: |
+          oci setup repair-file-permissions --file /home/runner/.oci/config
+          oci setup repair-file-permissions --file /home/runner/.oci/oci_api_key.pem
+
+      - name: 'Deploy Into Object Storage'
+        run: |
+          oci os object bulk-delete  -bn ${{secrets.OCI_BUCKET}}  --prefix static --force
+          oci os object put -bn ${{secrets.OCI_BUCKET}} --file ./build/manifest.json --content-type application/json --force
+          oci os object bulk-upload -bn ${{secrets.OCI_BUCKET}} --src-dir ./build --content-type text/html --include *.html --overwrite
+          oci os object bulk-upload -bn ${{secrets.OCI_BUCKET}} --src-dir ./build --content-type image/jpeg --include *.jpg --overwrite
+          oci os object bulk-upload -bn ${{secrets.OCI_BUCKET}} --src-dir ./build --content-type text/javascript --include *.js --overwrite
+          oci os object bulk-upload -bn ${{secrets.OCI_BUCKET}} --src-dir ./build --content-type text/css --include *.css --overwrite
+          oci os object bulk-upload -bn ${{secrets.OCI_BUCKET}} --src-dir ./build --content-type text/plain --exclude *.js --exclude *.html --exclude *.jpg --exclude *.css --exclude ./build/manifest.json --overwrite
