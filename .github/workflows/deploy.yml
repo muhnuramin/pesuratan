@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: 'Login to Dockerhub'
-        uses: 085300/login-action@v1
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -126,7 +126,7 @@ jobs:
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.INSTANCE_IP }}
-          username: opc
+          username: 085300
           key: ${{ secrets.OCI_KEY_FILE }}
           source: "docker-compose.yml"
           target: "./"
@@ -136,7 +136,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{env.INSTANCE_IP}}
-          username: opc
+          username: 085300
           key: ${{secrets.OCI_KEY_FILE}}
           command_timeout: 200m
           script: |
